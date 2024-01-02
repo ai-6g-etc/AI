@@ -110,3 +110,34 @@ always @(*) begin
 end
 
 endmodule
+
+
+=========================================================
+test_top :based on uvm
+=========================================================
+systemverilog
+`include "uvm_macros.svh"
+
+module test_top;
+  import uvm_pkg::*;
+  import my_test_pkg::*;
+
+  initial begin
+    // 创建UVM组件
+    my_test_env env;
+    my_test_case test_case;
+
+    // 设置UVM报告的详细级别
+    uvm_default_table_printer.knobs.depth = 100;
+    uvm_default_printer.knobs.reference = UVM_REFERENCE;
+
+    // 创建UVM测试环境
+    env = my_test_env::type_id::create("env");
+    // 创建UVM测试用例
+    test_case = my_test_case::type_id::create("test_case");
+
+    // 运行UVM测试
+    run_test("my_test", env);
+  end
+endmodule
+
