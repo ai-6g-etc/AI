@@ -1,0 +1,112 @@
+========================================================================================
+neural_network_ahb.v
+========================================================================================
+module neural_network_ahb (
+    input         HCLK,          // AHB总线时钟
+    input         HRESETn,       // AHB总线复位信号
+    input  [31:0] HADDR,         // AHB总线地址
+    input  [2:0]  HSEL,          // AHB总线片选信号
+    input         HWRITE,        // AHB总线写使能
+    input  [31:0] HWDATA,        // AHB总线写数据
+    output [31:0] HRDATA,        // AHB总线读数据
+    output        HREADY,        // AHB总线传输完成信号
+    output        HRESP          // AHB总线响应信号
+);
+
+// 声明内部信号
+reg [1:0] input_data_reg;
+reg output_data_reg;
+reg [31:0] hrdata_reg;
+reg hready_reg;
+reg hresp_reg;
+
+// 神经元网络模块实例化
+neural_network neuron_network_inst (
+    .input_data(input_data_reg),
+    .output_data(output_data_reg)
+);
+
+// AHB总线逻辑
+always @(posedge HCLK) begin
+    if (!HRESETn) begin
+        // 复位状态
+        hrdata_reg <= 32'h0;
+        hready_reg <= 1'b0;
+        hresp_reg <= 1'b0;
+    end else begin
+       // AHB总线读写逻辑
+        if (HSEL == 3'b000 && HREADY && !hready_reg) begin
+            // 读操作
+            case (HADDR[7:2])
+                // 读取神经元网络的输出数据
+                6'd0: begin
+                    // 从地址0x00读取输出数据
+                    hrdata_reg <= output_data_reg; // 从神经元网络模块读取数据
+                end
+                6'd1: begin
+                    // 从地址0x04读取其他数据
+                    // ...
+                end
+                // 添加更多的地址范围和读取操作...
+            endcase
+            // 设置响应信号和读取数据
+            hresp_reg <= 1'b0; // 表示OKAY响应
+            hready_reg <= 1'b1;
+        end
+        // 其他AHB总线操作（写操作等）...
+    end
+end
+
+// 输出AHB总线信号
+assign HRDATA = hrdata_reg;
+assign HREADY = hready_reg;
+assign HRESP = hresp_reg;
+
+endmodule
+
+========================================================================================
+neural_network.v:
+========================================================================================
+module neural_network (
+    input [1:0] input_data,
+    output reg output_data
+);
+
+// 第一层 Dense 层
+reg [5:0] dense1_out;
+always @(*) begin
+    dense1_out = input_data * 6'b001000 + input_data * 6'b000100; // 模拟 Dense 层的权重和偏置
+end
+
+// ReLU 激活函数
+reg [5:0] relu1_out;
+always @(*) begin
+    if (dense1_out[5]) begin
+        relu1_out = 6'b000000; // 大于0保持不变
+    end else begin
+        relu1_out = 6'b000000; // 小于等于0置为0
+    end
+end
+
+// 第二层 Dense 层
+reg [5:0] dense2_out;
+always @(*) begin
+    dense2_out = relu1_out * 6'b001000 + relu1_out * 6'b000100; // 模拟 Dense 层的权重和偏置
+end
+
+// ReLU 激活函数
+reg [5:0] relu2_out;
+always @(*) begin
+    if (dense2_out[5]) begin
+        relu2_out = 6'b000000; // 大于0保持不变
+    end else begin
+        relu2_out = 6'b000000; // 小于等于0置为0
+    end
+end
+
+// 输出层 Dense 层
+always @(*) begin
+    output_data = relu2_out * 6'b001000 + relu2_out * 6'b000100; // 模拟 Dense 层的权重和偏置
+end
+
+endmodule
