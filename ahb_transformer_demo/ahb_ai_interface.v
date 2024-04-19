@@ -22,8 +22,7 @@ module ahb_ai_interface #(
     output wire ahb_hready,
     output wire ahb_hresp
 );
-
-    wire start;
+    reg start;
     wire [IDIM*WIDTH-1:0] input_data;
     wire [IDIM*WIDTH-1:0] encoder_output;
     wire [IDIM*WIDTH-1:0] mask;
@@ -88,8 +87,7 @@ module ahb_ai_interface #(
         .bias2(bias2)
     );
 
-    assign ai_input = ahb_haddr; // Use the AHB address as the AI input
+    assign ai_output = ahb_haddr; // Use the AHB address as the AI output
     assign ai_valid = 1'b1; // For simplicity, we assume the AI network is always valid
     assign ai_ready = 1'b1; // For simplicity, we assume the AI network is always ready
-
 endmodule
