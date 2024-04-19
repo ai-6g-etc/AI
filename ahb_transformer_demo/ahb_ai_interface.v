@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 module ahb_ai_interface #(
     parameter IDIM = 512,
     parameter NUM_HEADS = 8,
